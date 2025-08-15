@@ -3,11 +3,17 @@ package main
 import (
 	"fmt"
 	"os/exec"
+	"sync"
 )
 
 func main() {
-	runTest(getUnitTestCmnd())
-	runTest(getIntegrationTestCmnd())
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go runTest(getUnitTestCmnd(), &wg)
+	go runTest(getIntegrationTestCmnd(), &wg)
+
+	wg.Wait()
 }
 
 func getUnitTestCmnd() *exec.Cmd {
@@ -18,13 +24,13 @@ func getIntegrationTestCmnd() *exec.Cmd {
 	return exec.Command("flutter", "test", "integration_test/integration_test.dart")
 }
 
-func runTest(cmd *exec.Cmd) {
-	stdout, err := cmd.Output()
+func runTest(cmd *exec.Cmd, wg *sync.WaitGroup) {
+	defer wg.Done()
 
+	stdout, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		fmt.Printf("Error running %v: %v\n", cmd.Args, err)
 	}
 
-	fmt.Println(string(stdout))
+	fmt.Printf("Output from %v:\n%s\n", cmd.Args, stdout)
 }

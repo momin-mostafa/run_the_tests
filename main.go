@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"os/exec"
 	"sync"
+
+	"github.com/momin-mostafa/run_my_tests/logger"
 )
 
 func main() {
@@ -29,8 +30,8 @@ func runTest(cmd *exec.Cmd, wg *sync.WaitGroup) {
 
 	stdout, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("Error running %v: %v\n", cmd.Args, err)
+		logger.FailedLog(cmd, err)
 	}
 
-	fmt.Printf("Output from %v:\n%s\n", cmd.Args, stdout)
+	logger.SuccessLog(cmd, stdout)
 }
